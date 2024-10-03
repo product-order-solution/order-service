@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.techie.microservices</groupId>
 	<artifactId>order-service</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<name>order-service</name>
 	<description>Demo project for Spring Boot</description>
 	<url/>
@@ -108,6 +108,20 @@
 			<groupId>org.springframework.cloud</groupId>
 			<artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.testcontainers</groupId>
+			<artifactId>kafka</artifactId>
+			<scope>test</scope>
+		</dependency>
 
 
 	</dependencies>
@@ -131,7 +145,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<image>
-						<name>cdelgadodata/${project.artifactId}</name>
+						<name>cdelgadodata/${project.artifactId}:${project.version}</name>
 						<publish>true</publish>
 					</image>
 					<docker>

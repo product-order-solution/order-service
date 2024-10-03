@@ -1,5 +1,7 @@
 package com.techie.microservices.order;
 
+
+import com.techie.microservices.order.dto.OrderResponse;
 import com.techie.microservices.order.stubs.InventoryClientStub;
 import io.restassured.RestAssured;
 import org.hamcrest.Matchers;
@@ -11,6 +13,8 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.cloud.contract.wiremock.AutoConfigureWireMock;
 import org.springframework.context.annotation.Import;
 import org.testcontainers.containers.MySQLContainer;
+import org.testcontainers.containers.KafkaContainer;
+
 
 import static org.hamcrest.MatcherAssert.assertThat;
 
@@ -25,6 +29,9 @@ class OrderServiceApplicationTests {
 	// Inject the MySQLContainer bean
 	@Autowired
 	private MySQLContainer<?> mysqlContainer;
+
+	@Autowired
+	private KafkaContainer kafkaContainer;
 
 	//When the test run, the port chosen will be added to this variable.
 	@LocalServerPort
@@ -47,33 +54,28 @@ class OrderServiceApplicationTests {
 		System.out.println("MySQL JDBC URL: " + mysqlContainer.getJdbcUrl());
 		System.out.println("MySQL Username: " + mysqlContainer.getUsername());
 		System.out.println("MySQL Password: " + mysqlContainer.getPassword());
+
+		assert kafkaContainer.isRunning();
 	}
 
 	@Test
 	void shouldSubmitOrder() {
-		String requestBody = """
-			{
-				"skuCode": "iPhone_15",
-				"price": 1000,
-				"quantity": 1
-			}""";
-
+		// Stub the inventory service
 		InventoryClientStub.stubInventoryCall("iPhone_15", 1);
 
-		var responseBodyString = RestAssured.given()
+		OrderResponse orderResponse = RestAssured.given()
 				.header("Content-Type", "application/json")
-				.body(requestBody)
+				.header("Authorization", "Bearer " + TestConstants.MOCK_JWT)
+				.body(TestConstants.REQUEST_BODY)
 				.when()
 				.post("/api/order")
 				.then()
 				.statusCode(201)
 				.extract()
-				.body().asString();
+				.as(OrderResponse.class);
 
-		assertThat(responseBodyString, Matchers.is("Order Placed Successfully"));
-
-
-
+		assertThat(orderResponse.getMessage(), Matchers.is(TestConstants.EXPECTED_RESPONSE));
 	}
-
 }
+
+
